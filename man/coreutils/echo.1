@@ -1,0 +1,25 @@
+.\" SPDX-License-Identifier: GPL-3.0-or-later
+.\" Copyright (C) 2024 Matteo Cavestri
+.TH ECHO 1 "November 2024" "Userland Utilities" "User Commands"
+.SH NAME
+echo \- write arguments to standard output
+.SH SYNOPSIS
+.B echo
+.RI [ \-n ]
+.RI [ string ...]
+.SH DESCRIPTION
+Write arguments to standard output, separated by spaces, followed by a newline.
+.SH OPTIONS
+.TP
+.B \-n
+Suppress trailing newline.
+.SH EXIT STATUS
+Always returns 0.
+.SH STANDARDS
+POSIX.1-2017
+.SH NOTES
+Does not interpret backslash escapes.
+.SH SEE ALSO
+.BR printf (1)
+.SH AUTHOR
+Matteo Cavestri

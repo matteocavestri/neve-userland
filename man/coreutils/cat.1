@@ -1,0 +1,33 @@
+.\" SPDX-License-Identifier: GPL-3.0-or-later
+.\" Copyright (C) 2024 Matteo Cavestri
+.TH CAT 1 "November 2024" "Userland Utilities" "User Commands"
+.SH NAME
+cat \- concatenate files and print to standard output
+.SH SYNOPSIS
+.B cat
+.RI [ file ...]
+.SH DESCRIPTION
+Concatenate files to standard output. With no files, or when file is
+.BR \- ,
+read standard input.
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B >0
+Error occurred.
+.SH EXAMPLES
+.TP
+.B cat file1 file2
+Concatenate and display two files.
+.TP
+.B cat
+Read from standard input.
+.SH STANDARDS
+POSIX.1-2017
+.SH SEE ALSO
+.BR tac (1),
+.BR more (1)
+.SH AUTHOR
+Matteo Cavestri

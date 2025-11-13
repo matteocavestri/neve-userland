@@ -1,0 +1,74 @@
+#!/bin/sh
+# POSIX compliance tests for pwd utility
+
+. "$(dirname "$0")/../common.sh"
+
+PWD_BIN="${BIN_DIR}/pwd"
+
+printf "Testing: pwd\n"
+printf "========================================\n"
+
+# Test 1: Basic output
+output=$($PWD_BIN)
+expected=$(pwd)
+if [ "$output" = "$expected" ]; then
+    print_result "pwd prints current directory" "PASS"
+else
+    print_result "pwd prints current directory" "FAIL" "Expected '$expected', got '$output'"
+fi
+
+# Test 2: Output is absolute path
+output=$($PWD_BIN)
+case "$output" in
+    /*)
+        print_result "pwd outputs absolute path" "PASS"
+        ;;
+    *)
+        print_result "pwd outputs absolute path" "FAIL" "Path should start with /"
+        ;;
+esac
+
+# Test 3: No trailing newline issues
+output=$($PWD_BIN | wc -l)
+if [ "$output" -eq 1 ]; then
+    print_result "pwd includes trailing newline" "PASS"
+else
+    print_result "pwd includes trailing newline" "FAIL"
+fi
+
+# Test 4: Exit code should be 0
+test_exit_code "$PWD_BIN" 0 "pwd exits with code 0"
+
+# Test 5: Ignores arguments (POSIX allows but doesn't require this)
+# Most implementations ignore arguments
+test_exit_code "$PWD_BIN ignore these args" 0 "pwd ignores arguments"
+
+# Test 6: Works in different directories
+# Convert PWD_BIN to absolute path first
+if [ -x "$PWD_BIN" ]; then
+    case "$PWD_BIN" in
+        /*)
+            # Already absolute
+            PWD_BIN_ABS="$PWD_BIN"
+            ;;
+        *)
+            # Make it absolute
+            PWD_BIN_ABS="$(pwd)/$PWD_BIN"
+            ;;
+    esac
+    
+    ORIGINAL_DIR=$(pwd)
+    cd /tmp || exit 1
+    output=$($PWD_BIN_ABS)
+    cd "$ORIGINAL_DIR" || exit 1
+    
+    if [ "$output" = "/tmp" ]; then
+        print_result "pwd works in different directories" "PASS"
+    else
+        print_result "pwd works in different directories" "FAIL" "Expected '/tmp', got '$output'"
+    fi
+else
+    print_result "pwd works in different directories" "SKIP" "Binary not found"
+fi
+
+print_summary "pwd"

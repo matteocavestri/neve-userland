@@ -1,0 +1,118 @@
+#!/bin/sh
+# POSIX compliance tests for ls utility
+
+. "$(dirname "$0")/../common.sh"
+
+LS="${BIN_DIR}/ls"
+
+printf "Testing: ls\n"
+printf "========================================\n"
+
+# Create temporary directory for testing
+TEMP_DIR=$(mktemp -d /tmp/posix_ls_test.XXXXXX)
+
+# Create test files
+touch "$TEMP_DIR/file1.txt"
+touch "$TEMP_DIR/file2.txt"
+touch "$TEMP_DIR/.hidden"
+mkdir "$TEMP_DIR/subdir"
+
+# Test 1: List current directory (just check it doesn't crash)
+$LS >/dev/null 2>&1
+if [ $? -eq 0 ]; then
+    print_result "ls lists current directory" "PASS"
+else
+    print_result "ls lists current directory" "FAIL"
+fi
+
+# Test 2: List specific directory
+output=$($LS "$TEMP_DIR")
+if echo "$output" | grep -q "file1.txt"; then
+    print_result "ls lists specific directory" "PASS"
+else
+    print_result "ls lists specific directory" "FAIL" "Expected to find file1.txt"
+fi
+
+# Test 3: Lists all visible files
+output=$($LS "$TEMP_DIR")
+if echo "$output" | grep -q "file1.txt" && echo "$output" | grep -q "file2.txt"; then
+    print_result "ls shows all visible files" "PASS"
+else
+    print_result "ls shows all visible files" "FAIL"
+fi
+
+# Test 4: Does not show hidden files by default
+output=$($LS "$TEMP_DIR")
+if echo "$output" | grep -q "\.hidden"; then
+    print_result "ls hides hidden files by default" "FAIL" "Should not show .hidden"
+else
+    print_result "ls hides hidden files by default" "PASS"
+fi
+
+# Test 5: -a option shows hidden files
+output=$($LS -a "$TEMP_DIR")
+if echo "$output" | grep -q "\.hidden"; then
+    print_result "ls -a shows hidden files" "PASS"
+else
+    print_result "ls -a shows hidden files" "FAIL" "Expected .hidden to appear"
+fi
+
+# Test 6: -a option shows . and ..
+output=$($LS -a "$TEMP_DIR")
+if echo "$output" | grep -q "^\.\$" && echo "$output" | grep -q "^\.\.\$"; then
+    print_result "ls -a shows . and .." "PASS"
+else
+    print_result "ls -a shows . and .." "FAIL"
+fi
+
+# Test 7: -A option shows hidden files but not . and ..
+output=$($LS -A "$TEMP_DIR")
+if echo "$output" | grep -q "\.hidden"; then
+    if echo "$output" | grep -q "^\.\$" || echo "$output" | grep -q "^\.\.\$"; then
+        print_result "ls -A hides . and .." "FAIL" "Should not show . or .."
+    else
+        print_result "ls -A hides . and .." "PASS"
+    fi
+else
+    print_result "ls -A hides . and .." "FAIL" "Should show .hidden"
+fi
+
+# Test 8: -l option for long format
+output=$($LS -l "$TEMP_DIR/file1.txt")
+if echo "$output" | grep -q "^-"; then
+    print_result "ls -l shows long format" "PASS"
+else
+    print_result "ls -l shows long format" "FAIL" "Expected permission string"
+fi
+
+# Test 9: Lists subdirectories
+output=$($LS "$TEMP_DIR")
+if echo "$output" | grep -q "subdir"; then
+    print_result "ls shows subdirectories" "PASS"
+else
+    print_result "ls shows subdirectories" "FAIL"
+fi
+
+# Test 10: Nonexistent directory returns error
+$LS /nonexistent_directory_xyz_12345 >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+    print_result "ls fails on nonexistent directory" "PASS"
+else
+    print_result "ls fails on nonexistent directory" "FAIL"
+fi
+
+# Test 11: Exit code 0 on success
+test_exit_code "$LS $TEMP_DIR" 0 "ls exits with 0 on success"
+
+# Test 12: Can list a single file
+output=$($LS "$TEMP_DIR/file1.txt")
+if echo "$output" | grep -q "file1.txt"; then
+    print_result "ls can list single file" "PASS"
+else
+    print_result "ls can list single file" "FAIL"
+fi
+
+# Cleanup
+rm -rf "$TEMP_DIR"
+
+print_summary "ls"

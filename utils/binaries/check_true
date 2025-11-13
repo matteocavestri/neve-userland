@@ -1,0 +1,40 @@
+#!/bin/sh
+# POSIX compliance tests for true utility
+
+. "$(dirname "$0")/../common.sh"
+
+TRUE_BIN="${BIN_DIR}/true"
+
+printf "Testing: true\n"
+printf "========================================\n"
+
+# Test 1: Exit code is 0
+test_exit_code "$TRUE_BIN" 0 "true exits with code 0"
+
+# Test 2: No output to stdout
+output=$($TRUE_BIN)
+if [ -z "$output" ]; then
+    print_result "true produces no stdout" "PASS"
+else
+    print_result "true produces no stdout" "FAIL" "Unexpected output: '$output'"
+fi
+
+# Test 3: No output to stderr
+stderr=$($TRUE_BIN 2>&1 >/dev/null)
+if [ -z "$stderr" ]; then
+    print_result "true produces no stderr" "PASS"
+else
+    print_result "true produces no stderr" "FAIL"
+fi
+
+# Test 4: Ignores arguments
+test_exit_code "$TRUE_BIN arg1 arg2 arg3" 0 "true ignores arguments"
+
+# Test 5: Works in pipeline
+if echo test | $TRUE_BIN; then
+    print_result "true works in pipeline" "PASS"
+else
+    print_result "true works in pipeline" "FAIL"
+fi
+
+print_summary "true"

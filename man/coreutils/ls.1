@@ -1,0 +1,51 @@
+.\" SPDX-License-Identifier: GPL-3.0-or-later
+.\" Copyright (C) 2024 Matteo Cavestri
+.TH LS 1 "November 2024" "Userland Utilities" "User Commands"
+.SH NAME
+ls \- list directory contents
+.SH SYNOPSIS
+.B ls
+.RI [ \-aAlhrtR1 ]
+.RI [ file ...]
+.SH DESCRIPTION
+List information about files and directories. List current directory if no
+operand is given.
+.SH OPTIONS
+.TP
+.B \-a
+Include entries starting with dot.
+.TP
+.B \-A
+Like \-a, but exclude . and ..
+.TP
+.B \-l
+Long format.
+.TP
+.B \-h
+Human-readable sizes (with \-l).
+.TP
+.B \-r
+Reverse sort order.
+.TP
+.B \-t
+Sort by modification time, newest first.
+.TP
+.B \-R
+Recursive listing.
+.TP
+.B \-1
+One entry per line.
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B >0
+Error occurred.
+.SH STANDARDS
+POSIX.1-2017
+.SH SEE ALSO
+.BR dir (1),
+.BR stat (1)
+.SH AUTHOR
+Matteo Cavestri

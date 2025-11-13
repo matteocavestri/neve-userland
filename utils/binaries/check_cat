@@ -1,0 +1,125 @@
+#!/bin/sh
+# POSIX compliance tests for cat utility
+
+. "$(dirname "$0")/../common.sh"
+
+CAT="${BIN_DIR}/cat"
+
+printf "Testing: cat\n"
+printf "========================================\n"
+
+# Create temporary files for testing
+TEMP1=$(make_temp_file)
+TEMP2=$(make_temp_file)
+TEMP_EMPTY=$(make_temp_file)
+TEMP_BIN=$(make_temp_file)
+
+# Populate test files
+echo "First line" > "$TEMP1"
+echo "Second line" >> "$TEMP1"
+echo "Third line" > "$TEMP2"
+: > "$TEMP_EMPTY"  # Empty file
+
+# Test 1: Single file
+output=$($CAT "$TEMP1")
+expected="First line
+Second line"
+if [ "$output" = "$expected" ]; then
+    print_result "cat reads single file" "PASS"
+else
+    print_result "cat reads single file" "FAIL" "Output mismatch"
+fi
+
+# Test 2: Multiple files
+output=$($CAT "$TEMP1" "$TEMP2")
+expected="First line
+Second line
+Third line"
+if [ "$output" = "$expected" ]; then
+    print_result "cat concatenates multiple files" "PASS"
+else
+    print_result "cat concatenates multiple files" "FAIL" "Output mismatch"
+fi
+
+# Test 3: Empty file
+output=$($CAT "$TEMP_EMPTY")
+if [ -z "$output" ]; then
+    print_result "cat handles empty file" "PASS"
+else
+    print_result "cat handles empty file" "FAIL" "Expected empty output"
+fi
+
+# Test 4: Stdin with no arguments
+output=$(echo "stdin test" | $CAT)
+if [ "$output" = "stdin test" ]; then
+    print_result "cat reads from stdin with no arguments" "PASS"
+else
+    print_result "cat reads from stdin with no arguments" "FAIL"
+fi
+
+# Test 5: Dash reads from stdin
+output=$(echo "dash test" | $CAT -)
+if [ "$output" = "dash test" ]; then
+    print_result "cat - reads from stdin" "PASS"
+else
+    print_result "cat - reads from stdin" "FAIL"
+fi
+
+# Test 6: Mix file and stdin
+output=$(echo "from stdin" | $CAT "$TEMP1" -)
+expected="First line
+Second line
+from stdin"
+if [ "$output" = "$expected" ]; then
+    print_result "cat mixes file and stdin" "PASS"
+else
+    print_result "cat mixes file and stdin" "FAIL"
+fi
+
+# Test 7: Nonexistent file should fail
+$CAT /tmp/nonexistent_file_xyz_12345.txt >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+    print_result "cat fails on nonexistent file" "PASS"
+else
+    print_result "cat fails on nonexistent file" "FAIL" "Should return non-zero exit code"
+fi
+
+# Test 8: Binary data preservation
+# Create binary file using a more portable method
+# Write bytes 0x00, 0xFF, 0x42 using octal escapes which are more portable
+# \000 = 0x00, \377 = 0xFF, \102 = 0x42
+printf '\000\377\102' > "$TEMP_BIN"
+
+# Verify the file was created and has the right size
+if [ ! -s "$TEMP_BIN" ]; then
+    print_result "cat preserves binary data" "SKIP" "Could not create binary test file"
+else
+    # Read it back and check if sizes match (basic test)
+    original_size=$(wc -c < "$TEMP_BIN")
+    output_size=$($CAT "$TEMP_BIN" | wc -c)
+    
+    if [ "$original_size" -eq "$output_size" ]; then
+        # More thorough check: compare using od
+        original_hex=$(od -An -tx1 "$TEMP_BIN" | tr -d ' \n')
+        output_hex=$($CAT "$TEMP_BIN" | od -An -tx1 | tr -d ' \n')
+        
+        if [ "$original_hex" = "$output_hex" ]; then
+            print_result "cat preserves binary data" "PASS"
+        else
+            print_result "cat preserves binary data" "FAIL" "Hex output mismatch: expected '$original_hex', got '$output_hex'"
+        fi
+    else
+        print_result "cat preserves binary data" "FAIL" "Size mismatch: expected $original_size bytes, got $output_size bytes"
+    fi
+fi
+
+# Test 9: Exit code on success
+test_exit_code "$CAT $TEMP1" 0 "cat exits with 0 on success"
+
+# Cleanup
+cleanup_temp "$TEMP1"
+cleanup_temp "$TEMP2"
+cleanup_temp "$TEMP_EMPTY"
+cleanup_temp "$TEMP_BIN"
+
+print_summary "cat"

@@ -1,0 +1,73 @@
+#!/bin/sh
+# Main POSIX compliance checker
+# Runs all individual utility checks
+
+set -e
+
+# Color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Get the directory where this script is located
+SCRIPT_DIR=$(dirname "$0")
+BINARIES_DIR="$SCRIPT_DIR/binaries"
+
+# Set binary directory (can be overridden)
+export BIN_DIR="${BIN_DIR:-zig-out/bin}"
+
+# Check if binary directory exists
+if [ ! -d "$BIN_DIR" ]; then
+    printf "${RED}Error:${NC} Binary directory '%s' not found\n" "$BIN_DIR"
+    printf "Please run 'zig build' first or set BIN_DIR environment variable\n"
+    exit 1
+fi
+
+printf "${BLUE}╔════════════════════════════════════════╗${NC}\n"
+printf "${BLUE}║  POSIX Compliance Checker for Userland ║${NC}\n"
+printf "${BLUE}╚════════════════════════════════════════╝${NC}\n"
+printf "\n"
+printf "Binary directory: %s\n" "$BIN_DIR"
+printf "\n"
+
+# Counter for utilities
+UTILITIES_TOTAL=0
+UTILITIES_PASSED=0
+UTILITIES_FAILED=0
+
+# Find all check_* scripts
+for check_script in "$BINARIES_DIR"/check_*; do
+    if [ -f "$check_script" ] && [ -x "$check_script" ]; then
+        UTILITIES_TOTAL=$((UTILITIES_TOTAL + 1))
+        
+        # Extract utility name
+        utility=$(basename "$check_script" | sed 's/check_//')
+        
+        printf "\n${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+        
+        # Run the check script
+        if "$check_script"; then
+            UTILITIES_PASSED=$((UTILITIES_PASSED + 1))
+        else
+            UTILITIES_FAILED=$((UTILITIES_FAILED + 1))
+        fi
+    fi
+done
+
+# Print overall summary
+printf "\n"
+printf "${BLUE}╔════════════════════════════════════════╗${NC}\n"
+printf "${BLUE}║           Overall Summary              ║${NC}\n"
+printf "${BLUE}╚════════════════════════════════════════╝${NC}\n"
+printf "Total utilities tested: %d\n" "$UTILITIES_TOTAL"
+printf "${GREEN}Passed:${NC}                 %d\n" "$UTILITIES_PASSED"
+
+if [ "$UTILITIES_FAILED" -gt 0 ]; then
+    printf "${RED}Failed:${NC}                 %d\n" "$UTILITIES_FAILED"
+    printf "\n${RED}Some utilities failed POSIX compliance tests!${NC}\n"
+    exit 1
+else
+    printf "\n${GREEN}✓ All utilities are POSIX compliant!${NC}\n"
+    exit 0
+fi

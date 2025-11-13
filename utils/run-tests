@@ -1,0 +1,7 @@
+#!/bin/sh
+
+zig build
+
+zig build test --summary all
+
+./utils/check-posix

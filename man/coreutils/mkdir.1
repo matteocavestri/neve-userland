@@ -1,0 +1,47 @@
+.\" SPDX-License-Identifier: GPL-3.0-or-later
+.\" Copyright (C) 2024 Matteo Cavestri
+.TH MKDIR 1 "November 2024" "Userland Utilities" "User Commands"
+.SH NAME
+mkdir \- make directories
+.SH SYNOPSIS
+.B mkdir
+.RI [ \-p ]
+.RI [ \-m
+.IR mode ]
+.IR directory ...
+.SH DESCRIPTION
+Create directories with specified names.
+.SH OPTIONS
+.TP
+.B \-p
+Create parent directories as needed. No error if existing.
+.TP
+.BI \-m " mode"
+Set permission mode (as in chmod), default is a=rwx minus umask bits.
+.TP
+.B \-v
+Verbose mode (print created directories).
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B >0
+Error occurred.
+.SH EXAMPLES
+.TP
+.B mkdir newdir
+Create directory 'newdir'.
+.TP
+.B mkdir \-p parent/child/grandchild
+Create nested directories.
+.TP
+.B mkdir \-m 755 newdir
+Create directory with specific permissions.
+.SH STANDARDS
+POSIX.1-2017
+.SH SEE ALSO
+.BR rmdir (1),
+.BR chmod (1)
+.SH AUTHOR
+Matteo Cavestri

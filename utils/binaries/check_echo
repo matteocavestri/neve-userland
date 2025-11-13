@@ -1,0 +1,52 @@
+#!/bin/sh
+# POSIX compliance tests for echo utility
+
+. "$(dirname "$0")/../common.sh"
+
+ECHO="${BIN_DIR}/echo"
+
+printf "Testing: echo\n"
+printf "========================================\n"
+
+# Test 1: No arguments (should print newline)
+test_output "$ECHO" "" "echo with no arguments prints newline"
+
+# Test 2: Single argument
+test_output "$ECHO hello" "hello" "echo with single argument"
+
+# Test 3: Multiple arguments (separated by spaces)
+test_output "$ECHO hello world" "hello world" "echo with multiple arguments"
+
+# Test 4: -n flag suppresses newline
+output=$($ECHO -n hello)
+if [ "$output" = "hello" ]; then
+    print_result "echo -n suppresses newline" "PASS"
+else
+    print_result "echo -n suppresses newline" "FAIL" "Expected 'hello', got '$output'"
+fi
+
+# Test 5: -n with multiple arguments
+output=$($ECHO -n hello world)
+if [ "$output" = "hello world" ]; then
+    print_result "echo -n with multiple arguments" "PASS"
+else
+    print_result "echo -n with multiple arguments" "FAIL" "Expected 'hello world', got '$output'"
+fi
+
+# Test 6: -n not at start is treated as text
+test_output "$ECHO hello -n" "hello -n" "echo treats -n as text when not first"
+
+# Test 7: Empty string
+test_output "$ECHO ''" "" "echo with empty string"
+
+# Test 8: Special characters
+test_output "$ECHO '!@#\$%^&*()'" '!@#$%^&*()' "echo with special characters"
+
+# Test 9: Exit code should be 0
+test_exit_code "$ECHO test" 0 "echo exits with code 0"
+
+# Test 10: Backslash handling (POSIX XSI extension - optional)
+# Note: Basic POSIX echo does not process backslashes
+test_output "$ECHO 'hello\\nworld'" 'hello\nworld' "echo does not interpret backslashes (POSIX)"
+
+print_summary "echo"
